@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Filter, Plus, User, Building, Phone, Mail, MapPin, ChevronDown, Save, ArrowDownToLine, X } from 'lucide-react';
+import { Search, Filter, Plus, User, Building, Phone, Mail, MapPin, ChevronDown, Save, ArrowDownToLine, X, AlertTriangle } from 'lucide-react';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import DataTable from '../../components/ui/DataTable';
 import AdvancedFilter from '../../components/ui/AdvancedFilter';
 import ClientForm from './ClientForm';
 
-const ClientsList = ({ data, darkMode, type = 'property' }) => {
+const ClientsList = ({ data = [], darkMode, type = 'property' }) => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [filteredClients, setFilteredClients] = useState(data || []);
-  const [clients, setClients] = useState(data || []);
+  const [filteredClients, setFilteredClients] = useState([]);
+  const [clients, setClients] = useState([]);
   const [showAddForm, setShowAddForm] = useState(false);
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [showSavedFiltersDropdown, setShowSavedFiltersDropdown] = useState(false);
@@ -28,12 +28,21 @@ const ClientsList = ({ data, darkMode, type = 'property' }) => {
       filters: { city: 'Warszawa', searchTerm: '' } 
     }
   ]);
+  const [showConfirmDelete, setShowConfirmDelete] = useState(false);
+  const [clientToDelete, setClientToDelete] = useState(null);
+  const [clientToEdit, setClientToEdit] = useState(null);
   
-  // Funkcja filtrowania
+  // Initialize client data
+  useEffect(() => {
+    setClients(data || []);
+    setFilteredClients(data || []);
+  }, [data]);
+  
+  // Filtering function
   const handleFilter = (filters) => {
     let filtered = [...clients];
     
-    // Filtrowanie po wyszukiwaniu
+    // Filter by search term
     if (filters.searchTerm) {
       const searchLower = filters.searchTerm.toLowerCase();
       filtered = filtered.filter(client => 
@@ -44,12 +53,12 @@ const ClientsList = ({ data, darkMode, type = 'property' }) => {
       );
     }
     
-    // Filtrowanie po mieście (jeśli dostępne)
+    // Filter by city (if available)
     if (filters.city && filters.city !== 'all' && type === 'chimney') {
       filtered = filtered.filter(client => client.city === filters.city);
     }
     
-    // Sortowanie
+    // Sorting
     if (filters.sortBy) {
       switch (filters.sortBy) {
         case 'nameAsc':
@@ -76,21 +85,79 @@ const ClientsList = ({ data, darkMode, type = 'property' }) => {
     setCurrentFilters(filters);
   };
   
-  // Ustawienie początkowej listy klientów
-  useEffect(() => {
-    setClients(data || []);
-    setFilteredClients(data || []);
-  }, [data]);
-  
-  // Obsługa dodawania nowego klienta
+  // Handle adding a new client
   const handleAddClient = (newClient) => {
+    // In a real app, you would add this client to your database
+    console.log('Adding new client:', newClient);
+    
+    // For demo purposes, add to local state
     const updatedClients = [...clients, newClient];
     setClients(updatedClients);
     setFilteredClients(updatedClients);
     setShowAddForm(false);
+    
+    // Show success message
+    alert(`Client "${newClient.name}" added successfully!`);
   };
   
-  // Obsługa zapisywania filtra
+  // Handle editing a client
+  const handleEditClient = (clientId) => {
+    const client = clients.find(c => c.id === clientId);
+    if (client) {
+      setClientToEdit(client);
+      setShowAddForm(true);
+    }
+  };
+  
+  // Handle client edit submission
+  const handleEditSubmit = (updatedClient) => {
+    // In a real app, you would update this client in your database
+    console.log('Updating client:', updatedClient);
+    
+    // For demo purposes, update local state
+    const updatedClients = clients.map(client => 
+      client.id === updatedClient.id ? updatedClient : client
+    );
+    
+    setClients(updatedClients);
+    setFilteredClients(updatedClients);
+    setClientToEdit(null);
+    setShowAddForm(false);
+    
+    // Show success message
+    alert(`Client "${updatedClient.name}" updated successfully!`);
+  };
+  
+  // Handle client deletion confirmation
+  const handleDeleteClick = (clientId) => {
+    const client = clients.find(c => c.id === clientId);
+    if (client) {
+      setClientToDelete(client);
+      setShowConfirmDelete(true);
+    }
+  };
+  
+  // Handle confirmed client deletion
+  const handleConfirmDelete = () => {
+    if (clientToDelete) {
+      // In a real app, you would delete this client from your database
+      console.log('Deleting client:', clientToDelete);
+      
+      // For demo purposes, remove from local state
+      const updatedClients = clients.filter(client => client.id !== clientToDelete.id);
+      setClients(updatedClients);
+      setFilteredClients(updatedClients);
+      
+      // Clear state and close modal
+      setClientToDelete(null);
+      setShowConfirmDelete(false);
+      
+      // Show success message
+      alert(`Client "${clientToDelete.name}" deleted successfully!`);
+    }
+  };
+  
+  // Handle saving a filter
   const handleSaveFilter = () => {
     if (!newFilterName.trim()) return;
     
@@ -104,22 +171,45 @@ const ClientsList = ({ data, darkMode, type = 'property' }) => {
     setSavedFilters(updatedFilters);
     setShowSaveFilterModal(false);
     setNewFilterName('');
+    
+    // Show success message
+    alert(`Filter "${newFilterName}" saved successfully!`);
   };
   
-  // Obsługa usuwania zapisanego filtra
+  // Handle deleting a saved filter
   const handleDeleteFilter = (filterId) => {
     const updatedFilters = savedFilters.filter(filter => filter.id !== filterId);
     setSavedFilters(updatedFilters);
   };
   
-  // Obsługa zastosowania zapisanego filtra
+  // Handle applying a saved filter
   const handleApplySavedFilter = (filter) => {
     handleFilter(filter.filters);
     setCurrentFilters(filter.filters);
     setShowSavedFiltersDropdown(false);
   };
+  
+  // View client details
+  const handleViewClientDetails = (clientId) => {
+    const client = clients.find(c => c.id === clientId);
+    if (client) {
+      console.log('Viewing client details:', client);
+      // In a real app, you would navigate to client details page
+      alert(`Would navigate to client details for: ${client.name}`);
+    }
+  };
+  
+  // View client buildings (chimney interface only)
+  const handleViewBuildings = (clientId) => {
+    const client = clients.find(c => c.id === clientId);
+    if (client && type === 'chimney') {
+      console.log('Viewing buildings for client:', client);
+      // In a real app, you would navigate to buildings page with filter
+      alert(`Would navigate to buildings for client: ${client.name}`);
+    }
+  };
 
-  // Renderowanie różnych wersji komponentu w zależności od typu
+  // Render different versions of the component depending on type
   if (type === 'chimney') {
     return (
       <div className="space-y-6">
@@ -128,30 +218,39 @@ const ClientsList = ({ data, darkMode, type = 'property' }) => {
           <Button 
             color="red" 
             className="flex items-center"
-            onClick={() => setShowAddForm(true)}
+            onClick={() => {
+              setClientToEdit(null);
+              setShowAddForm(true);
+            }}
           >
             <Plus size={16} className="mr-2" />
             Dodaj klienta
           </Button>
         </div>
         
-        {/* Formularz dodawania klienta */}
+        {/* Client form */}
         {showAddForm && (
           <Card darkMode={darkMode}>
-            <h3 className="font-semibold mb-4">Dodaj nowego klienta</h3>
+            <h3 className="font-semibold mb-4">
+              {clientToEdit ? 'Edytuj klienta' : 'Dodaj nowego klienta'}
+            </h3>
             <ClientForm 
-              onSubmit={handleAddClient} 
-              onCancel={() => setShowAddForm(false)}
+              client={clientToEdit}
+              onSubmit={clientToEdit ? handleEditSubmit : handleAddClient} 
+              onCancel={() => {
+                setShowAddForm(false);
+                setClientToEdit(null);
+              }}
               darkMode={darkMode}
               type="chimney"
             />
           </Card>
         )}
         
-        {/* Panel wyszukiwania i filtrów */}
+        {/* Search and filters */}
         <Card darkMode={darkMode} className="mb-6">
           <div className="flex flex-col md:flex-row md:space-x-2 space-y-2 md:space-y-0">
-            {/* Pole wyszukiwania */}
+            {/* Search input */}
             <div className="relative flex-1">
               <input
                 type="text"
@@ -179,7 +278,7 @@ const ClientsList = ({ data, darkMode, type = 'property' }) => {
               )}
             </div>
             
-            {/* Przyciski filtrów */}
+            {/* Filter buttons */}
             <div className="flex space-x-2">
               <Button 
                 variant={showAdvancedFilters ? 'primary' : 'outline'} 
@@ -202,7 +301,7 @@ const ClientsList = ({ data, darkMode, type = 'property' }) => {
                   <ChevronDown size={16} className="ml-1" />
                 </Button>
                 
-                {/* Dropdown z zapisanymi filtrami */}
+                {/* Saved filters dropdown */}
                 {showSavedFiltersDropdown && (
                   <div className={`absolute right-0 mt-1 w-48 ${
                     darkMode ? 'bg-gray-800' : 'bg-white'
@@ -265,7 +364,7 @@ const ClientsList = ({ data, darkMode, type = 'property' }) => {
             </div>
           </div>
           
-          {/* Rozszerzone filtry */}
+          {/* Advanced filters */}
           {showAdvancedFilters && (
             <div className="mt-4 pt-4 border-t dark:border-gray-700">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -355,7 +454,7 @@ const ClientsList = ({ data, darkMode, type = 'property' }) => {
             </div>
           )}
           
-          {/* Aktywne filtry */}
+          {/* Active filters */}
           {Object.keys(currentFilters).filter(key => key !== 'searchTerm' && currentFilters[key] !== 'all' && currentFilters[key]).length > 0 && (
             <div className="mt-4 flex flex-wrap gap-2">
               {Object.entries(currentFilters)
@@ -364,7 +463,7 @@ const ClientsList = ({ data, darkMode, type = 'property' }) => {
                   let label = key;
                   let displayValue = value;
                   
-                  // Formatowanie etykiet
+                  // Format labels
                   if (key === 'city') label = 'Miasto';
                   else if (key === 'sortBy') {
                     label = 'Sortowanie';
@@ -400,7 +499,7 @@ const ClientsList = ({ data, darkMode, type = 'property' }) => {
           )}
         </Card>
         
-        {/* Modal zapisywania filtra */}
+        {/* Save filter modal */}
         {showSaveFilterModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
             <div className={`max-w-md w-full ${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-xl p-6`}>
@@ -439,6 +538,7 @@ const ClientsList = ({ data, darkMode, type = 'property' }) => {
           </div>
         )}
         
+        {/* Clients list */}
         <Card darkMode={darkMode}>
           <div className="overflow-x-auto">
             <table className="min-w-full data-table chimney">
@@ -454,7 +554,11 @@ const ClientsList = ({ data, darkMode, type = 'property' }) => {
               </thead>
               <tbody>
                 {filteredClients.map((client) => (
-                  <tr key={client.id} className={darkMode ? 'border-b border-gray-700' : 'border-b'}>
+                  <tr 
+                    key={client.id} 
+                    className={`${darkMode ? 'border-b border-gray-700' : 'border-b'} cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700`}
+                    onClick={() => handleViewClientDetails(client.id)}
+                  >
                     <td className="py-2">
                       <div className="flex items-center">
                         <div className="icon-wrapper mr-2 chimney">
@@ -496,9 +600,33 @@ const ClientsList = ({ data, darkMode, type = 'property' }) => {
                     <td className="py-2">{client.lastInspection}</td>
                     <td className="py-2">
                       <div className="flex space-x-2">
-                        <Button variant="link">Edytuj</Button>
-                        <Button variant="link">Szczegóły</Button>
-                        <Button variant="link">Budynki</Button>
+                        <Button 
+                          variant="link" 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEditClient(client.id);
+                          }}
+                        >
+                          Edytuj
+                        </Button>
+                        <Button 
+                          variant="link" 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleViewClientDetails(client.id);
+                          }}
+                        >
+                          Szczegóły
+                        </Button>
+                        <Button 
+                          variant="link" 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleViewBuildings(client.id);
+                          }}
+                        >
+                          Budynki
+                        </Button>
                       </div>
                     </td>
                   </tr>
@@ -514,10 +642,48 @@ const ClientsList = ({ data, darkMode, type = 'property' }) => {
             </div>
           )}
         </Card>
+        
+        {/* Delete confirmation modal */}
+        {showConfirmDelete && clientToDelete && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
+            <div className={`max-w-md w-full ${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-xl p-6`}>
+              <div className="flex items-start mb-4">
+                <div className="mr-3 text-red-500">
+                  <AlertTriangle size={24} />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold">Potwierdź usunięcie</h3>
+                  <p className="text-gray-500 mt-1">
+                    Czy na pewno chcesz usunąć klienta "{clientToDelete.name}"? 
+                    Ta operacja jest nieodwracalna.
+                  </p>
+                </div>
+              </div>
+              
+              <div className="flex justify-end space-x-2">
+                <Button 
+                  variant="outline" 
+                  onClick={() => {
+                    setShowConfirmDelete(false);
+                    setClientToDelete(null);
+                  }}
+                >
+                  Anuluj
+                </Button>
+                <Button 
+                  color="red"
+                  onClick={handleConfirmDelete}
+                >
+                  Usuń
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   } else {
-    // Komponent dla wersji property (deweloperskiej)
+    // Property (developer) version of the component
     return (
       <div className="space-y-6">
         <div className="flex justify-between items-center">
@@ -525,30 +691,39 @@ const ClientsList = ({ data, darkMode, type = 'property' }) => {
           <Button 
             color="blue" 
             className="flex items-center"
-            onClick={() => setShowAddForm(true)}
+            onClick={() => {
+              setClientToEdit(null);
+              setShowAddForm(true);
+            }}
           >
             <Plus size={16} className="mr-2" />
             Dodaj klienta
           </Button>
         </div>
         
-        {/* Formularz dodawania klienta */}
+        {/* Client form */}
         {showAddForm && (
           <Card darkMode={darkMode}>
-            <h3 className="font-semibold mb-4">Dodaj nowego klienta (najemcę)</h3>
+            <h3 className="font-semibold mb-4">
+              {clientToEdit ? 'Edytuj klienta (najemcę)' : 'Dodaj nowego klienta (najemcę)'}
+            </h3>
             <ClientForm 
-              onSubmit={handleAddClient} 
-              onCancel={() => setShowAddForm(false)}
+              client={clientToEdit}
+              onSubmit={clientToEdit ? handleEditSubmit : handleAddClient} 
+              onCancel={() => {
+                setShowAddForm(false);
+                setClientToEdit(null);
+              }}
               darkMode={darkMode}
               type="property"
             />
           </Card>
         )}
         
-        {/* Panel wyszukiwania i filtrów */}
+        {/* Search and filters */}
         <Card darkMode={darkMode} className="mb-6">
           <div className="flex flex-col md:flex-row md:space-x-2 space-y-2 md:space-y-0">
-            {/* Pole wyszukiwania */}
+            {/* Search input */}
             <div className="relative flex-1">
               <input
                 type="text"
@@ -576,7 +751,7 @@ const ClientsList = ({ data, darkMode, type = 'property' }) => {
               )}
             </div>
             
-            {/* Przyciski filtrów */}
+            {/* Filter buttons */}
             <div className="flex space-x-2">
               <Button 
                 variant={showAdvancedFilters ? 'primary' : 'outline'} 
@@ -599,7 +774,7 @@ const ClientsList = ({ data, darkMode, type = 'property' }) => {
                   <ChevronDown size={16} className="ml-1" />
                 </Button>
                 
-                {/* Dropdown z zapisanymi filtrami */}
+                {/* Saved filters dropdown */}
                 {showSavedFiltersDropdown && (
                   <div className={`absolute right-0 mt-1 w-48 ${
                     darkMode ? 'bg-gray-800' : 'bg-white'
@@ -662,7 +837,7 @@ const ClientsList = ({ data, darkMode, type = 'property' }) => {
             </div>
           </div>
           
-          {/* Rozszerzone filtry */}
+          {/* Advanced filters */}
           {showAdvancedFilters && (
             <div className="mt-4 pt-4 border-t dark:border-gray-700">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -748,7 +923,7 @@ const ClientsList = ({ data, darkMode, type = 'property' }) => {
             </div>
           )}
           
-          {/* Aktywne filtry */}
+          {/* Active filters */}
           {Object.keys(currentFilters).filter(key => key !== 'searchTerm' && currentFilters[key] !== 'all' && currentFilters[key]).length > 0 && (
             <div className="mt-4 flex flex-wrap gap-2">
               {Object.entries(currentFilters)
@@ -757,7 +932,7 @@ const ClientsList = ({ data, darkMode, type = 'property' }) => {
                   let label = key;
                   let displayValue = value;
                   
-                  // Formatowanie etykiet
+                  // Format labels
                   if (key === 'paymentStatus') label = 'Status płatności';
                   else if (key === 'sortBy') {
                     label = 'Sortowanie';
@@ -797,7 +972,7 @@ const ClientsList = ({ data, darkMode, type = 'property' }) => {
           )}
         </Card>
         
-        {/* Modal zapisywania filtra */}
+        {/* Save filter modal */}
         {showSaveFilterModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
             <div className={`max-w-md w-full ${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-xl p-6`}>
@@ -836,6 +1011,7 @@ const ClientsList = ({ data, darkMode, type = 'property' }) => {
           </div>
         )}
         
+        {/* Clients list */}
         <Card darkMode={darkMode}>
           <div className="overflow-x-auto">
             <table className="min-w-full data-table">
@@ -851,7 +1027,11 @@ const ClientsList = ({ data, darkMode, type = 'property' }) => {
               </thead>
               <tbody>
                 {filteredClients.map((client) => (
-                  <tr key={client.id} className={darkMode ? 'border-b border-gray-700' : 'border-b'}>
+                  <tr 
+                    key={client.id} 
+                    className={`${darkMode ? 'border-b border-gray-700' : 'border-b'} cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700`}
+                    onClick={() => handleViewClientDetails(client.id)}
+                  >
                     <td className="py-2">
                       <div className="flex items-center">
                         <div className="icon-wrapper mr-2">
@@ -894,8 +1074,24 @@ const ClientsList = ({ data, darkMode, type = 'property' }) => {
                     </td>
                     <td className="py-2">
                       <div className="flex space-x-2">
-                        <Button variant="link">Edytuj</Button>
-                        <Button variant="link">Szczegóły</Button>
+                        <Button 
+                          variant="link"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEditClient(client.id);
+                          }}
+                        >
+                          Edytuj
+                        </Button>
+                        <Button 
+                          variant="link"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleViewClientDetails(client.id);
+                          }}
+                        >
+                          Szczegóły
+                        </Button>
                       </div>
                     </td>
                   </tr>
@@ -911,6 +1107,44 @@ const ClientsList = ({ data, darkMode, type = 'property' }) => {
             </div>
           )}
         </Card>
+        
+        {/* Delete confirmation modal */}
+        {showConfirmDelete && clientToDelete && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
+            <div className={`max-w-md w-full ${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-xl p-6`}>
+              <div className="flex items-start mb-4">
+                <div className="mr-3 text-red-500">
+                  <AlertTriangle size={24} />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold">Potwierdź usunięcie</h3>
+                  <p className="text-gray-500 mt-1">
+                    Czy na pewno chcesz usunąć klienta "{clientToDelete.name}"? 
+                    Ta operacja jest nieodwracalna.
+                  </p>
+                </div>
+              </div>
+              
+              <div className="flex justify-end space-x-2">
+                <Button 
+                  variant="outline" 
+                  onClick={() => {
+                    setShowConfirmDelete(false);
+                    setClientToDelete(null);
+                  }}
+                >
+                  Anuluj
+                </Button>
+                <Button 
+                  color="red"
+                  onClick={handleConfirmDelete}
+                >
+                  Usuń
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   }

@@ -18,6 +18,7 @@ function AppChimney({ user, onLogout }) {
     inspectionsByTypeData: [],
     inspectionsByResultData: [],
     ceebStatusData: [],
+    activities: [],
     clients: [],
     buildings: [],
     ceebReports: []

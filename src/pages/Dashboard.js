@@ -9,15 +9,17 @@ import PaymentCalendar from '../components/ui/PaymentCalendar';
 
 const Dashboard = ({ data, darkMode, setActiveTab }) => {
   // Obliczanie KPI
-  const totalIncome = data.apartments
-    .filter(apt => apt.status === 'Wynajęte')
-    .reduce((sum, apt) => sum + apt.price, 0);
+  const totalIncome = Array.isArray(data.apartments)
+  ? data.apartments
+      .filter(apt => apt.status === 'Wynajęte')
+      .reduce((sum, apt) => sum + apt.price, 0)
+  : 0;
   
   const totalExpenses = data.invoices
     .reduce((sum, inv) => sum + inv.amount, 0);
   
-  const occupancyRate = data.apartments.length > 0 
-    ? (data.apartments.filter(apt => apt.status === 'Wynajęte').length / data.apartments.length * 100).toFixed(1) 
+    const occupancyRate = Array.isArray(data.apartments) && data.apartments.length > 0
+    ? (data.apartments.filter(apt => apt.status === 'Wynajęte').length / data.apartments.length * 100).toFixed(1)
     : 0;
   
   const unpaidInvoices = data.invoices.filter(inv => inv.status === 'Do zapłaty').length;

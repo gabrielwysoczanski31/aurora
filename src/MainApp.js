@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import EnhancedLogin from './EnhancedLogin';
-import AppDeveloper from './AppDeveloper'; // Dashboard deweloperski
-import AppChimney from './AppChimney'; // Dashboard kominiarski
+import AppDeveloper from './AppDeveloper';
+import AppChimney from './AppChimney';
 
 const MainApp = () => {
   const [user, setUser] = useState(null);

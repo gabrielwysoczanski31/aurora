@@ -51,14 +51,6 @@ const EnhancedLogin = ({ onLogin }) => {
       }
     }, 1000);
   };
-  
-  const getGradientClass = () => {
-    if (selectedSystem === 'developer') {
-      return 'from-blue-500 to-blue-700';
-    } else {
-      return 'from-red-500 to-red-700';
-    }
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-100 to-gray-300 dark:from-gray-800 dark:to-gray-900 flex items-center justify-center p-4 login-container">
@@ -163,7 +155,7 @@ const EnhancedLogin = ({ onLogin }) => {
                     <label htmlFor="password" className="block text-gray-700 dark:text-gray-300 mb-2 font-medium">
                       Hasło
                     </label>
-                    <a href="#" className={`text-sm ${
+                    <a href="https://www.google.com/" className={`text-sm ${
                       selectedSystem === 'developer' ? 'text-blue-600 hover:text-blue-800' : 'text-red-600 hover:text-red-800'
                     } dark:text-gray-300`}>
                       Zapomniałeś hasła?

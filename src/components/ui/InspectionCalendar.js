@@ -2,8 +2,7 @@ import React, { useState } from 'react';
 import { Calendar, ChevronLeft, ChevronRight, Clipboard } from 'lucide-react';
 import Card from './Card';
 
-const InspectionCalendar = ({ inspections, darkMode }) => {
-  const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
+const InspectionCalendar = ({ inspections = [], darkMode }) => {  const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   
   const monthNames = ['Styczeń', 'Luty', 'Marzec', 'Kwiecień', 'Maj', 'Czerwiec', 

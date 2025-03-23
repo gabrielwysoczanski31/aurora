@@ -155,7 +155,7 @@ const EnhancedLogin = ({ onLogin }) => {
                     <label htmlFor="password" className="block text-gray-700 dark:text-gray-300 mb-2 font-medium">
                       Hasło
                     </label>
-                    <a href="https://www.google.com/" className={`text-sm ${
+                    <a href="" className={`text-sm ${
                       selectedSystem === 'developer' ? 'text-blue-600 hover:text-blue-800' : 'text-red-600 hover:text-red-800'
                     } dark:text-gray-300`}>
                       Zapomniałeś hasła?

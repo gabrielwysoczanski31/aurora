@@ -7,22 +7,31 @@ import DataTable from '../components/ui/DataTable';
 import ActivityFeed from '../components/ui/ActivityFeed';
 import PaymentCalendar from '../components/ui/PaymentCalendar';
 
-const Dashboard = ({ data, darkMode, setActiveTab }) => {
+const Dashboard = ({ data = {}, darkMode, setActiveTab }) => {
+  const invoices = Array.isArray(data.invoices) ? data.invoices : [];
+  const apartments = Array.isArray(data.apartments) ? data.apartments : [];
+  const rentalStatusData = Array.isArray(data.rentalStatusData) ? data.rentalStatusData : [];
+  const activities = Array.isArray(data.activities) ? data.activities : [];
+  const paymentCalendar = Array.isArray(data.paymentCalendar) ? data.paymentCalendar : [];
+  const monthlyIncomeData = Array.isArray(data.monthlyIncomeData) ? data.monthlyIncomeData : [];
+  const costBreakdownData = Array.isArray(data.costBreakdownData) ? data.costBreakdownData : [];
+  
   // Obliczanie KPI
-  const totalIncome = Array.isArray(data.apartments)
-  ? data.apartments
-      .filter(apt => apt.status === 'Wynajęte')
-      .reduce((sum, apt) => sum + apt.price, 0)
-  : 0;
-  
-  const totalExpenses = data.invoices
-    .reduce((sum, inv) => sum + inv.amount, 0);
-  
-    const occupancyRate = Array.isArray(data.apartments) && data.apartments.length > 0
-    ? (data.apartments.filter(apt => apt.status === 'Wynajęte').length / data.apartments.length * 100).toFixed(1)
+  const totalIncome = Array.isArray(apartments)
+    ? apartments
+        .filter(apt => apt.status === 'Wynajęte')
+        .reduce((sum, apt) => sum + apt.price, 0)
     : 0;
   
-  const unpaidInvoices = data.invoices.filter(inv => inv.status === 'Do zapłaty').length;
+  const totalExpenses = Array.isArray(invoices)
+    ? invoices.reduce((sum, inv) => sum + (inv.amount || 0), 0)
+    : 0;
+  
+  const occupancyRate = Array.isArray(apartments) && apartments.length > 0
+    ? (apartments.filter(apt => apt.status === 'Wynajęte').length / apartments.length * 100).toFixed(1)
+    : 0;
+  
+  const unpaidInvoices = invoices.filter(inv => inv.status === 'Do zapłaty').length;
 
   return (
     <div className="space-y-6">
@@ -65,7 +74,7 @@ const Dashboard = ({ data, darkMode, setActiveTab }) => {
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart
-                  data={data.monthlyIncomeData}
+                  data={monthlyIncomeData}
                   margin={{ top: 5, right: 20, bottom: 5, left: 0 }}
                 >
                   <CartesianGrid strokeDasharray="3 3" stroke={darkMode ? '#444' : '#eee'} />
@@ -86,7 +95,7 @@ const Dashboard = ({ data, darkMode, setActiveTab }) => {
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
-                  data={data.costBreakdownData}
+                  data={costBreakdownData}
                   margin={{ top: 5, right: 20, bottom: 30, left: 0 }}
                 >
                   <CartesianGrid strokeDasharray="3 3" stroke={darkMode ? '#444' : '#eee'} />
@@ -103,7 +112,7 @@ const Dashboard = ({ data, darkMode, setActiveTab }) => {
           <Card darkMode={darkMode}>
             <h3 className="font-semibold mb-4">Status mieszkań</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {data.rentalStatusData.map((status, index) => (
+              {rentalStatusData.map((status, index) => (
                 <div key={index} className={`p-3 rounded-lg ${index === 0 ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100' : index === 1 ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100' : index === 2 ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100' : 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-100'}`}>
                   <h4 className="font-medium">{status.name}</h4>
                   <p className="text-2xl font-bold mt-1">{status.value}</p>
@@ -147,7 +156,7 @@ const Dashboard = ({ data, darkMode, setActiveTab }) => {
                   )
                 }
               ]}
-              data={data.invoices.slice(0, 5)}
+              data={invoices.slice(0, 5)}
             />
           </Card>
         </div>
@@ -156,13 +165,13 @@ const Dashboard = ({ data, darkMode, setActiveTab }) => {
         <div className="space-y-6">
           {/* Feed aktywności */}
           <ActivityFeed 
-            activities={data.activities} 
+            activities={activities} 
             darkMode={darkMode} 
           />
           
           {/* Kalendarz płatności */}
           <PaymentCalendar 
-            payments={data.paymentCalendar} 
+            payments={paymentCalendar} 
             darkMode={darkMode} 
           />
         </div>

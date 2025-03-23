@@ -7,7 +7,7 @@ import DataTable from '../components/ui/DataTable';
 import ActivityFeed from '../components/ui/ActivityFeed';
 import InspectionCalendar from '../components/ui/InspectionCalendar';
 
-const ChimneyDashboard = ({ data, darkMode, setActiveTab = () => {} }) => {
+const ChimneyDashboard = ({ data, darkMode }) => {
   // Obliczanie KPI
   const totalInspections = data.inspections.length;
   const pendingCeebSubmissions = data.inspections.filter(i => i.ceebStatus === 'Do zgłoszenia').length;
@@ -166,7 +166,8 @@ const ChimneyDashboard = ({ data, darkMode, setActiveTab = () => {} }) => {
             <div className="flex justify-between items-center mb-4">
               <h3 className="font-semibold">Ostatnie kontrole</h3>
               <Button 
-                onClick={() => setActiveTab('inspections')} 
+                as="a"
+                href="/inspections"
                 variant="link"
                 className="text-red-600"
               >
@@ -254,7 +255,8 @@ const ChimneyDashboard = ({ data, darkMode, setActiveTab = () => {} }) => {
             
             <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
               <Button 
-                onClick={() => setActiveTab('clients')} 
+                as="a"
+                href="/clients"
                 variant="outline" 
                 fullWidth
               >
@@ -286,13 +288,14 @@ const ChimneyDashboard = ({ data, darkMode, setActiveTab = () => {} }) => {
             </div>
             
             <div className="mt-4">
-              <Button 
-                onClick={() => setActiveTab('ceeb')} 
-                variant="outline" 
-                fullWidth
-              >
-                Wszystkie zgłoszenia
-              </Button>
+              <a href="/ceeb">
+                <Button 
+                  variant="outline" 
+                  fullWidth
+                >
+                  Wszystkie zgłoszenia
+                </Button>
+              </a>
             </div>
           </Card>
         </div>

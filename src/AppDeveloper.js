@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import Layout from './components/layout/Layout';
 import Dashboard from './pages/Dashboard';
 import PropertiesList from './pages/Properties/PropertiesList';
@@ -10,9 +11,11 @@ import ClientManagement from './pages/Clients/ClientsList';
 import PropertyDetails from './pages/Properties/PropertyDetails';
 import { generateData } from './utils/dataGenerator';
 
-function AppDeveloper({ user, onLogout }) {
+function AppDeveloper({ user, onLogout, initialTab }) {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [darkMode, setDarkMode] = useState(false);
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const [activeTab, setActiveTab] = useState(initialTab || 'dashboard');
   const [data, setData] = useState({
     apartments: [],
     invoices: [],
@@ -23,37 +26,90 @@ function AppDeveloper({ user, onLogout }) {
     activities: [],
     clients: []
   });
-  
-  // Stan dla widoku szczegółowego
+  const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [selectedProperty, setSelectedProperty] = useState(null);
   const [viewingPropertyDetails, setViewingPropertyDetails] = useState(false);
   
-  // Symulacja danych aktualizowanych na żywo
+  // Handle tab changes through URL
   useEffect(() => {
-    setData(generateData());
-    
-    const interval = setInterval(() => {
+    // Parse the current path to determine active tab
+    const path = location.pathname.split('/').pop();
+    if (path && ['dashboard', 'properties', 'tenants', 'invoices', 'finance', 'settings', 'clients'].includes(path)) {
+      setActiveTab(path);
+    }
+  }, [location]);
+  
+  // Initial data load
+  useEffect(() => {
+    setIsLoading(true);
+    // Simulate API call
+    setTimeout(() => {
       setData(generateData());
-    }, 30000); // Aktualizacja danych co 30 sekund
-    
-    return () => clearInterval(interval);
+      setIsLoading(false);
+    }, 1000);
   }, []);
-
-  // Obsługa wyboru mieszkania do widoku szczegółowego
+  
+  // Handle data refresh with less disruption
+  useEffect(() => {
+    const refreshInterval = setInterval(() => {
+      // Only refresh if user isn't in the middle of viewing details
+      if (!viewingPropertyDetails) {
+        setIsRefreshing(true);
+        // Get new data
+        const newData = generateData();
+        
+        // Apply updates carefully to preserve selected items
+        setData(prevData => {
+          // If there's a selected property, ensure it remains in the updated data
+          if (selectedProperty) {
+            const updatedProperty = newData.apartments.find(p => p.id === selectedProperty.id);
+            if (updatedProperty) {
+              setSelectedProperty(updatedProperty);
+            }
+          }
+          return newData;
+        });
+        
+        setIsRefreshing(false);
+      }
+    }, 60000); // Less frequent updates - every minute
+    
+    return () => clearInterval(refreshInterval);
+  }, [viewingPropertyDetails, selectedProperty]);
+  
+  // Tab change handler that updates URL
+  const handleTabChange = useCallback((tab) => {
+    setActiveTab(tab);
+    navigate(`/developer/${tab}`);
+  }, [navigate]);
+  
+  // Property selection handler
   const handlePropertySelect = (property) => {
     setSelectedProperty(property);
     setViewingPropertyDetails(true);
   };
-
-  // Powrót z widoku szczegółowego do listy
+  
+  // Return from property details
   const handleBackToList = () => {
     setViewingPropertyDetails(false);
     setSelectedProperty(null);
   };
+  
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading data...</p>
+        </div>
+      </div>
+    );
+  }
 
-  // Renderowanie aktywnej zakładki
+  // Render active tab content
   const renderContent = () => {
-    // Jeśli przeglądamy szczegóły mieszkania
+    // If viewing property details
     if (viewingPropertyDetails && selectedProperty) {
       return (
         <PropertyDetails 
@@ -64,14 +120,15 @@ function AppDeveloper({ user, onLogout }) {
       );
     }
 
-    // W przeciwnym razie renderujemy odpowiednią zakładkę
+    // Regular tab content
     switch (activeTab) {
       case 'dashboard':
         return (
           <Dashboard 
             data={data} 
             darkMode={darkMode}
-            setActiveTab={setActiveTab}
+            setActiveTab={handleTabChange}
+            isRefreshing={isRefreshing}
           />
         );
       case 'properties':
@@ -80,14 +137,15 @@ function AppDeveloper({ user, onLogout }) {
             data={data.apartments} 
             darkMode={darkMode}
             onPropertySelect={handlePropertySelect}
+            isRefreshing={isRefreshing}
           />
         );
       case 'tenants':
-        return <TenantsList data={data.apartments} darkMode={darkMode} />;
+        return <TenantsList data={data.apartments} darkMode={darkMode} isRefreshing={isRefreshing} />;
       case 'invoices':
-        return <InvoicesList data={data.invoices} darkMode={darkMode} />;
+        return <InvoicesList data={data.invoices} darkMode={darkMode} isRefreshing={isRefreshing} />;
       case 'finance':
-        return <FinanceOverview data={data} darkMode={darkMode} />;
+        return <FinanceOverview data={data} darkMode={darkMode} isRefreshing={isRefreshing} />;
       case 'settings':
         return (
           <AccountSettings 
@@ -98,9 +156,9 @@ function AppDeveloper({ user, onLogout }) {
           />
         );
       case 'clients':
-        return <ClientManagement darkMode={darkMode} type="property" />;
+        return <ClientManagement darkMode={darkMode} type="property" isRefreshing={isRefreshing} />;
       default:
-        return <Dashboard data={data} darkMode={darkMode} />;
+        return <Dashboard data={data} darkMode={darkMode} setActiveTab={handleTabChange} />;
     }
   };
 
@@ -109,11 +167,16 @@ function AppDeveloper({ user, onLogout }) {
       darkMode={darkMode} 
       setDarkMode={setDarkMode}
       activeTab={activeTab}
-      setActiveTab={setActiveTab}
+      setActiveTab={handleTabChange}
       data={data}
       user={user}
       onLogout={onLogout}
     >
+      {isRefreshing && (
+        <div className="fixed top-4 right-4 bg-blue-100 text-blue-800 px-4 py-2 rounded-md shadow-md animate-pulse z-50">
+          Refreshing data...
+        </div>
+      )}
       {renderContent()}
     </Layout>
   );

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import ChimneyHeader from './ChimneyHeader';
 import ChimneySidebar from './ChimneySidebar';
@@ -8,14 +9,14 @@ const ChimneyLayout = ({
   setDarkMode, 
   activeTab, 
   setActiveTab, 
-  data,
+  data = {}, // Provide default empty object
   user,
   onLogout
 }) => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   
-  // Obliczanie nieprzeczytanych powiadomień
-  const pendingInspections = data.inspections.filter(insp => insp.ceebStatus === 'Do zgłoszenia').length;
+  // Safely access data with null checks
+  const pendingInspections = data?.inspections?.filter(insp => insp?.ceebStatus === 'Do zgłoszenia')?.length || 0;
 
   return (
     <div className={`min-h-screen flex flex-col ${darkMode ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-800'}`}>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Download, AlertTriangle, CheckCircle, Filter, ChevronDown, Search, X, Calendar } from 'lucide-react';
+import { Download, AlertTriangle, CheckCircle, Filter, ChevronDown, Search, X, Calendar, MapPin, FileText } from 'lucide-react';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import DataTable from '../../components/ui/DataTable';
@@ -13,6 +13,9 @@ const CeebReportsList = ({ data, darkMode }) => {
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [filteredInspections, setFilteredInspections] = useState([]);
   const [dateFilter, setDateFilter] = useState({ start: '', end: '' });
+  const [resultFilter, setResultFilter] = useState('all');
+  const [cityFilter, setCityFilter] = useState('all');
+  const [typeFilter, setTypeFilter] = useState('all');
   const [showSubmissionModal, setShowSubmissionModal] = useState(false);
   const [selectedReport, setSelectedReport] = useState(null);
   
@@ -60,18 +63,36 @@ const CeebReportsList = ({ data, darkMode }) => {
       });
     }
     
+    // Filter by result
+    if (resultFilter !== 'all') {
+      filtered = filtered.filter(inspection => inspection.result === resultFilter);
+    }
+    
+    // Filter by city
+    if (cityFilter !== 'all') {
+      filtered = filtered.filter(inspection => inspection.city === cityFilter);
+    }
+    
+    // Filter by type
+    if (typeFilter !== 'all') {
+      filtered = filtered.filter(inspection => inspection.type === typeFilter);
+    }
+    
     setFilteredInspections(filtered);
   };
   
-  // Run filter when search term or date filter changes
+  // Run filter when search term or any filter changes
   useEffect(() => {
     filterInspections();
-  }, [searchTerm, dateFilter, data]);
+  }, [searchTerm, dateFilter, resultFilter, cityFilter, typeFilter, data]);
   
   // Reset filters
   const resetFilters = () => {
     setSearchTerm('');
     setDateFilter({ start: '', end: '' });
+    setResultFilter('all');
+    setCityFilter('all');
+    setTypeFilter('all');
   };
   
   // Handle individual inspection selection
@@ -353,7 +374,7 @@ const CeebReportsList = ({ data, darkMode }) => {
               {/* Advanced filters */}
               {showAdvancedFilters && (
                 <div className="mb-4 p-4 border rounded-lg dark:border-gray-700">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
                       <label className="block text-gray-500 mb-1">Data od</label>
                       <div className="relative">
@@ -376,6 +397,59 @@ const CeebReportsList = ({ data, darkMode }) => {
                           className={`px-3 py-2 border rounded-lg w-full ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
                         />
                         <Calendar size={16} className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 pointer-events-none" />
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-gray-500 mb-1">Wynik</label>
+                      <div className="relative">
+                        <select
+                          value={resultFilter}
+                          onChange={(e) => setResultFilter(e.target.value)}
+                          className={`px-3 py-2 border rounded-lg w-full ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
+                        >
+                          <option value="all">Wszystkie wyniki</option>
+                          <option value="Pozytywny">Pozytywny</option>
+                          <option value="Warunkowy">Warunkowy</option>
+                          <option value="Negatywny">Negatywny</option>
+                        </select>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-gray-500 mb-1">Miasto</label>
+                      <div className="relative">
+                        <select
+                          value={cityFilter}
+                          onChange={(e) => setCityFilter(e.target.value)}
+                          className={`px-3 py-2 border rounded-lg w-full ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
+                        >
+                          <option value="all">Wszystkie miasta</option>
+                          <option value="Katowice">Katowice</option>
+                          <option value="Gdańsk">Gdańsk</option>
+                          <option value="Lublin">Lublin</option>
+                          <option value="Kraków">Kraków</option>
+                          <option value="Poznań">Poznań</option>
+                        </select>
+                        <MapPin size={16} className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 pointer-events-none" />
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-gray-500 mb-1">Typ</label>
+                      <div className="relative">
+                        <select
+                          value={typeFilter}
+                          onChange={(e) => setTypeFilter(e.target.value)}
+                          className={`px-3 py-2 border rounded-lg w-full ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
+                        >
+                          <option value="all">Wszystkie typy</option>
+                          <option value="Instalacja gazowa">Instalacja gazowa</option>
+                          <option value="Przewód spalinowy">Przewód spalinowy</option>
+                          <option value="Przewód wentylacyjny">Przewód wentylacyjny</option>
+                          <option value="Przewód dymowy">Przewód dymowy</option>
+                        </select>
+                        <FileText size={16} className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 pointer-events-none" />
                       </div>
                     </div>
                   </div>
